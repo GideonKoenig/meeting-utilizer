@@ -32,9 +32,9 @@ export default function Meeting({ id, name, date, time }: MeetingProps) {
                     className="h-full"
                     defaultValue="a"
                 >
-                    <ToggleGroupItem value="a">A</ToggleGroupItem>
-                    <ToggleGroupItem value="b">B</ToggleGroupItem>
-                    <ToggleGroupItem value="c">C</ToggleGroupItem>
+                    <ToggleGroupItem value="a">Transcript</ToggleGroupItem>
+                    <ToggleGroupItem value="b">Summary</ToggleGroupItem>
+                    <ToggleGroupItem value="c">Statistics</ToggleGroupItem>
                 </ToggleGroup>
                 <div className="flex flex-grow"></div>
             </AccordionTrigger>
