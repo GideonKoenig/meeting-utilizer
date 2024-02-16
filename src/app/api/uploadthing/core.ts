@@ -13,7 +13,7 @@ const f = createUploadthing({
 });
 
 export const ourFileRouter = {
-    audioUploader: f({ audio: { maxFileSize: "4MB", maxFileCount: 20 } })
+    audioUploader: f({ audio: { maxFileSize: "2GB", maxFileCount: 20 } })
         .middleware(async () => {
             const session = await getServerAuthSession();
 

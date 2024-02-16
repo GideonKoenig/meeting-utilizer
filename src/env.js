@@ -33,6 +33,7 @@ export const env = createEnv({
         GOOGLE_CLIENT_SECRET: z.string(),
         UPLOADTHING_APP_ID: z.string(),
         UPLOADTHING_SECRET: z.string(),
+        DEEPGRAM_API_KEY: z.string(),
     },
 
     /**
@@ -57,6 +58,7 @@ export const env = createEnv({
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
         UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
         UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
+        DEEPGRAM_API_KEY: process.env.DEEPGRAM_API_KEY,
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
