@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
+import { Button } from "./button";
+import { api } from "~/trpc/react";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 export default function MeetingComponent(meeting: Meeting) {
     const [isHighlighted, setHighlighted] = useState<boolean>(false);
 
+    const utils = api.useUtils();
+    const deleteMutation = api.meeting.delete.useMutation();
+
     return (
-        <AccordionItem value={meeting.id.toString()} className="relative px-4">
+        <AccordionItem value={meeting.id} className="relative px-4">
             <AccordionTrigger onHover={setHighlighted}>
                 <div className="flex w-60 flex-col items-start">
                     <span
@@ -19,7 +25,23 @@ export default function MeetingComponent(meeting: Meeting) {
                 </div>
                 <div className="flex flex-grow"></div>
             </AccordionTrigger>
-            <AccordionContent>Stuff will go here.</AccordionContent>
+            <AccordionContent>
+                <Button
+                    variant={"destructive"}
+                    disabled={deleteMutation.isLoading}
+                    onClick={async () => {
+                        await deleteMutation.mutateAsync({
+                            meetingId: meeting.id,
+                        });
+                        await utils.meeting.getAllOwned.invalidate();
+                    }}
+                >
+                    {deleteMutation.isLoading && (
+                        <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Delete
+                </Button>
+            </AccordionContent>
         </AccordionItem>
     );
 }

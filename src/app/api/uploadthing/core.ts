@@ -1,10 +1,7 @@
-import { revalidateTag } from "next/cache";
-import { INTERNALS } from "next/dist/server/web/spec-extension/request";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
-import { api } from "~/trpc/server";
 
 const f = createUploadthing({
     errorFormatter: (err) => {
@@ -26,6 +23,7 @@ export const ourFileRouter = {
         .onUploadComplete(async ({ metadata, file }) => {
             const meeting = await db.meeting.create({
                 data: {
+                    id: file.url.substring(file.url.lastIndexOf("/") + 1),
                     name: file.name,
                     url: file.url,
                     createdBy: { connect: { id: metadata.userId } },

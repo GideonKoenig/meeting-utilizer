@@ -1,5 +1,5 @@
 type Meeting = {
-    id: number;
+    id: string;
     name: string;
     url: string;
     createdAt: Date;
