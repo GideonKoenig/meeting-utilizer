@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import {
     Dialog,
     DialogContent,
@@ -7,18 +8,15 @@ import {
     DialogTrigger,
 } from "./ui/dialog";
 import { UploadButton } from "./ui/uploadthing";
+import { api } from "~/trpc/react";
+import { useState } from "react";
 
-interface MeetingFormProps {
-    meetings: Meeting[];
-    setMeetings: (meetings: Meeting[]) => void;
-}
+export default function MeetingForm() {
+    const utils = api.useUtils();
+    const [open, setOpen] = useState(false);
 
-export default function MeetingForm({
-    meetings,
-    setMeetings,
-}: MeetingFormProps) {
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger className="flex-grow justify-center border-2 p-4 text-center text-2xl hover:bg-slate-50">
                 +
             </DialogTrigger>
@@ -31,11 +29,9 @@ export default function MeetingForm({
                 </DialogHeader>
                 <UploadButton
                     endpoint="audioUploader"
-                    onClientUploadComplete={(res) => {
-                        const newMeetings = res.map((item) => {
-                            return item.serverData;
-                        });
-                        setMeetings([...meetings, ...newMeetings]);
+                    onClientUploadComplete={async () => {
+                        await utils.meeting.getAllOwned.invalidate();
+                        setOpen(false);
                     }}
                     onUploadError={(error: Error) => {
                         alert(`ERROR! ${error.message}`);

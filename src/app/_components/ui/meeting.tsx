@@ -14,7 +14,7 @@ export default function MeetingComponent(meeting: Meeting) {
                         {meeting.name}
                     </span>
                     <span className="whitespace-pre text-sm text-gray-600">
-                        {meeting.createdAt}
+                        {stringifyDate(meeting.createdAt)}
                     </span>
                 </div>
                 <div className="flex flex-grow"></div>
@@ -22,4 +22,18 @@ export default function MeetingComponent(meeting: Meeting) {
             <AccordionContent>Stuff will go here.</AccordionContent>
         </AccordionItem>
     );
+}
+
+function stringifyDate(date: Date): string {
+    return date
+        .toLocaleString("en-GB", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        })
+        .replace(", ", "  ")
+        .replace("/", ".");
 }

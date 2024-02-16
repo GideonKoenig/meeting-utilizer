@@ -1,12 +1,16 @@
 "use client";
+import { api } from "~/trpc/react";
 import { Accordion } from "./ui/accordion";
 import MeetingComponent from "./ui/meeting";
 
-interface MeetingContainerProps {
-    meetings: Meeting[];
-}
+export default function MeetingContainer() {
+    const meetings: Meeting[] | undefined =
+        api.meeting.getAllOwned.useQuery().data;
 
-export default function MeetingContainer({ meetings }: MeetingContainerProps) {
+    if (!meetings) {
+        return <div></div>;
+    }
+
     return (
         <>
             <span className="pl-2 text-xs">30.01.2024</span>
