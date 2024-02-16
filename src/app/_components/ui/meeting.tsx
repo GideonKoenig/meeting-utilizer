@@ -3,6 +3,7 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
 import { Button } from "./button";
 import { api } from "~/trpc/react";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import Link from "next/link";
 
 export default function MeetingComponent(meeting: Meeting) {
     const [isHighlighted, setHighlighted] = useState<boolean>(false);
@@ -26,21 +27,29 @@ export default function MeetingComponent(meeting: Meeting) {
                 <div className="flex flex-grow"></div>
             </AccordionTrigger>
             <AccordionContent>
-                <Button
-                    variant={"destructive"}
-                    disabled={deleteMutation.isLoading}
-                    onClick={async () => {
-                        await deleteMutation.mutateAsync({
-                            meetingId: meeting.id,
-                        });
-                        await utils.meeting.getAllOwned.invalidate();
-                    }}
-                >
-                    {deleteMutation.isLoading && (
-                        <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Delete
-                </Button>
+                <div className="flex gap-2">
+                    <Button asChild variant={"secondary"}>
+                        <Link href={meeting.url} target="_blank">
+                            Original
+                        </Link>
+                    </Button>
+                    <Button variant={"secondary"}>Dummy</Button>
+                    <Button
+                        variant={"destructive"}
+                        disabled={deleteMutation.isLoading}
+                        onClick={async () => {
+                            await deleteMutation.mutateAsync({
+                                meetingId: meeting.id,
+                            });
+                            await utils.meeting.getAllOwned.invalidate();
+                        }}
+                    >
+                        {deleteMutation.isLoading && (
+                            <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Delete
+                    </Button>
+                </div>
             </AccordionContent>
         </AccordionItem>
     );
@@ -56,6 +65,6 @@ function stringifyDate(date: Date): string {
             minute: "2-digit",
             hour12: false,
         })
-        .replace(", ", "  ")
-        .replace("/", ".");
+        .replaceAll(", ", "  ")
+        .replaceAll("/", ".");
 }

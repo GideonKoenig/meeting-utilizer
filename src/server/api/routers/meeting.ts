@@ -6,7 +6,6 @@ import { UTApi } from "uploadthing/server";
 export const meetingRouter = createTRPCRouter({
     getAllOwned: protectedProcedure.query(async ({ ctx }) => {
         const meetings: Meeting[] = await ctx.db.meeting.findMany({
-            orderBy: { createdAt: "desc" },
             where: { createdBy: { id: ctx.session.user.id } },
         });
         return meetings;

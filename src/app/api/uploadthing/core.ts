@@ -27,6 +27,9 @@ export const ourFileRouter = {
                     name: file.name,
                     url: file.url,
                     createdBy: { connect: { id: metadata.userId } },
+                    // createdAt: new Date(
+                    //     new Date().setDate(new Date().getDate() - 10),
+                    // ),
                 },
             });
 

@@ -12,10 +12,10 @@ export default function Home() {
                 <MeetingForm></MeetingForm>
             </div>
 
-            <div className="flex min-h-screen flex-col p-4">
+            <div className="flex flex-col p-4">
                 <MeetingContainer></MeetingContainer>
             </div>
-            <ToggleGroup
+            {/* <ToggleGroup
                 type="single"
                 variant={"outline"}
                 className="h-full"
@@ -24,7 +24,7 @@ export default function Home() {
                 <ToggleGroupItem value="a">Transcript</ToggleGroupItem>
                 <ToggleGroupItem value="b">Summary</ToggleGroupItem>
                 <ToggleGroupItem value="c">Statistics</ToggleGroupItem>
-            </ToggleGroup>
+            </ToggleGroup> */}
         </main>
     );
 }
