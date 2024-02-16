@@ -18,6 +18,7 @@ model Meeting {
     id        Int      @id @default(autoincrement())
     name      String
     createdAt DateTime @default(now())
+    url       String
 
     createdBy   User            @relation(fields: [createdById], references: [id])
     createdById String

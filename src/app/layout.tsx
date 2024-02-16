@@ -5,7 +5,10 @@ import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { getServerAuthSession } from "~/server/auth";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import SessionProvider from "./_components/next-auth-session-provider";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "./api/uploadthing/core";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -28,6 +31,9 @@ export default async function RootLayout({
     return (
         <html lang="de">
             <body className={`font-sans ${inter.variable}`}>
+                <NextSSRPlugin
+                    routerConfig={extractRouterConfig(ourFileRouter)}
+                />
                 <TRPCReactProvider cookies={cookies().toString()}>
                     <SessionProvider session={session}>
                         {children}

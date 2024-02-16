@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { url } from "inspector";
 
 export const meetingRouter = createTRPCRouter({
     create: protectedProcedure
-        .input(z.object({ name: z.string() }))
+        .input(z.object({ name: z.string(), url: z.string() }))
         .mutation(async ({ ctx, input }) => {
             const userId = ctx.session.user.id;
             return ctx.db.meeting.create({
@@ -13,6 +14,7 @@ export const meetingRouter = createTRPCRouter({
                     user: {
                         create: [{ user: { connect: { id: userId } } }],
                     },
+                    url: input.url,
                 },
             });
         }),
