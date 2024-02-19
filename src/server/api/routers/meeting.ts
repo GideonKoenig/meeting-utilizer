@@ -49,6 +49,9 @@ export const meetingRouter = createTRPCRouter({
                 });
             }
 
+            await ctx.db.transcript.delete({
+                where: { meetingId: input.meetingId },
+            });
             await ctx.db.meetingToUser.deleteMany({
                 where: { meetingId: input.meetingId },
             });

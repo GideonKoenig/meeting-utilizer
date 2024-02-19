@@ -9,14 +9,20 @@ import {
 import { UploadButton } from "./ui/uploadthing";
 import { api } from "~/trpc/react";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function MeetingForm() {
+    const { data: session } = useSession();
+
     const utils = api.useUtils();
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger className="flex-grow justify-center border-2 p-4 text-center text-2xl hover:bg-slate-50">
+            <DialogTrigger
+                disabled={!session}
+                className={`flex-grow justify-center border-2 p-4 text-center text-2xl ${session ? "hover:bg-slate-50" : ""} ${!session ? " text-slate-300" : ""}`}
+            >
                 +
             </DialogTrigger>
             <DialogContent>

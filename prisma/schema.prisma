@@ -6,12 +6,25 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "sqlite" // After changing to postgres change rawResponses to Json from String
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
     // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
     url      = env("DATABASE_URL")
+}
+
+model Transcript {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    text      String
+
+    meeting   Meeting @relation(fields: [meetingId], references: [id])
+    meetingId String  @unique
+
+    rawResponse String
+
+    @@index([id])
 }
 
 model Meeting {
@@ -23,6 +36,8 @@ model Meeting {
     createdBy   User            @relation(fields: [createdById], references: [id])
     createdById String
     user        MeetingToUser[]
+
+    transcript Transcript?
 
     @@index([id])
 }

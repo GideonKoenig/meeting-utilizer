@@ -1,6 +1,6 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { meetingRouter } from "./routers/meeting";
-import { postRouter } from "./routers/post";
+import { transcriptRouter } from "./routers/transcript";
 
 /**
  * This is the primary router for your server.
@@ -9,7 +9,7 @@ import { postRouter } from "./routers/post";
  */
 export const appRouter = createTRPCRouter({
     meeting: meetingRouter,
-    post: postRouter,
+    transcript: transcriptRouter,
 });
 
 // export type definition of API

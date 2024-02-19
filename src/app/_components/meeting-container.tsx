@@ -1,11 +1,23 @@
 "use client";
 import { api } from "~/trpc/react";
 import { Accordion } from "./ui/accordion";
-import MeetingComponent from "./ui/meeting";
+import MeetingComponent from "./meeting";
+import { useSession } from "next-auth/react";
 
 export default function MeetingContainer() {
+    const { data: session } = useSession();
+    if (!session) {
+        return <div>No Session found</div>;
+        //Todo: Create proper Sign in Notification
+    }
+
     const meetings: Meeting[] | undefined =
         api.meeting.getAllOwned.useQuery().data;
+
+    if (!meetings) {
+        return <div>Nothing to see here, yet!</div>;
+        // Todo: Create proper Nothing here yet page
+    }
 
     return (
         <div className="flex flex-col gap-5">
@@ -37,11 +49,8 @@ export default function MeetingContainer() {
 }
 
 function groupAndSortMeetings(
-    meetings: Meeting[] | undefined,
+    meetings: Meeting[],
 ): { date: Date; meetings: Meeting[] }[] {
-    if (!meetings) {
-        return [];
-    }
     const grouped: Record<string, Meeting[]> = meetings.reduce(
         (acc, meeting) => {
             const dateKey = meeting.createdAt.toISOString().split("T")[0]; // YYYY-MM-DD
