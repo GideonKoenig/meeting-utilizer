@@ -15,29 +15,26 @@ datasource db {
 }
 
 model Transcript {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    text      String
-
-    meeting   Meeting @relation(fields: [meetingId], references: [id])
-    meetingId String  @unique
-
+    id          String   @id @default(cuid())
+    createdAt   DateTime @default(now())
+    text        String
+    transcript  String
+    meeting     Meeting  @relation(fields: [meetingId], references: [id])
+    meetingId   String   @unique
     rawResponse String
 
     @@index([id])
 }
 
 model Meeting {
-    id        String   @id @default(cuid())
-    name      String
-    createdAt DateTime @default(now())
-    url       String
-
+    id          String          @id @default(cuid())
+    name        String
+    createdAt   DateTime        @default(now())
+    url         String
     createdBy   User            @relation(fields: [createdById], references: [id])
     createdById String
     user        MeetingToUser[]
-
-    transcript Transcript?
+    transcript  Transcript?
 
     @@index([id])
 }

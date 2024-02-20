@@ -9,12 +9,11 @@ export const transcriptRouter = createTRPCRouter({
     get: protectedProcedure
         .input(z.object({ meetingId: z.string() }))
         .query(async ({ ctx, input }) => {
-            const transcript: Transcript | null =
-                await ctx.db.transcript.findFirst({
-                    where: { meeting: { id: input.meetingId } },
-                });
+            const transcript = await ctx.db.transcript.findFirst({
+                where: { meeting: { id: input.meetingId } },
+            });
 
-            return transcript ? transcript : undefined;
+            return transcript ? parseFromDB(transcript) : undefined;
         }),
     create: protectedProcedure
         .input(z.object({ meetingId: z.string() }))
@@ -37,10 +36,11 @@ export const transcriptRouter = createTRPCRouter({
                         url: meeting.url,
                     },
                     {
-                        model: "nova-2-general",
+                        model: "nova-2-general" /* whisper-large */,
                         smart_format: true,
                         // punctuate: undefined, // included in smart_format
-                        // paragraphs: undefined, // included in smart_format                        version: "latest",
+                        // paragraphs: undefined, // included in smart_format
+                        // version: "latest",
                         // language: undefined,
                         detect_language: true,
                         // profanity_filter: false,
@@ -97,15 +97,36 @@ export const transcriptRouter = createTRPCRouter({
                       })
                       .join("\n");
 
-            const transcript: Transcript = await ctx.db.transcript.create({
+            const transcriptJSON: {
+                startTime: number;
+                endTime: number;
+                speakerId: number;
+                sentence: string;
+            }[] = !paragraphs
+                ? []
+                : paragraphs.map((paragraph) => {
+                      return {
+                          speakerId: paragraph.speaker,
+                          startTime: paragraph.start,
+                          endTime: paragraph.end,
+                          sentence: paragraph.sentences
+                              .map((sentence) => {
+                                  return sentence.text;
+                              })
+                              .join(" "),
+                      };
+                  });
+
+            const transcript = await ctx.db.transcript.create({
                 data: {
                     text: transcriptText,
+                    transcript: JSON.stringify(transcriptJSON),
                     meeting: { connect: { id: input.meetingId } },
                     rawResponse: JSON.stringify(result),
                 },
             });
 
-            return transcript;
+            return parseFromDB(transcript);
         }),
     /* This has to be done differently. The logic should get extracted into a function that is called by both endpoints*/
     // getOrCreate: protectedProcedure
@@ -124,12 +145,27 @@ export const transcriptRouter = createTRPCRouter({
     //     }),
 });
 
+function parseFromDB(transcript: {
+    id: string;
+    createdAt: Date;
+    text: string;
+    transcript: string;
+    meetingId: string;
+    rawResponse: string;
+}): Transcript {
+    return {
+        ...transcript,
+        rawResponse: JSON.parse(transcript.rawResponse),
+        transcript: JSON.parse(transcript.transcript),
+    };
+}
+
 function stringifyTimestamp(seconds: number): string {
     const hours: number = Math.floor(seconds / 3600);
     const minutes: number = Math.floor((seconds % 3600) / 60);
     const remainingSeconds: number = seconds % 60;
 
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remainingSeconds.toFixed(2).padStart(5, "0")}`;
+    return `${hours.toString()}:${minutes.toString().padStart(2, "0")}:${remainingSeconds.toFixed(2).padStart(5, "0")}`;
 }
 
 type CustomResponseType = typeof samnpleResponseForTypeDefinition;

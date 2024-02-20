@@ -25,6 +25,7 @@ export default function TranscriptBody({
     className,
 }: TrnanscriptBodyProps) {
     const [showTimestamps, setShowTimestamps] = useState<Checked>(true);
+    const [showSpeaker, setShowSpeaker] = useState<Checked>(true);
 
     const transcript: Transcript | undefined = api.transcript.get.useQuery({
         meetingId: meetingId,
@@ -44,7 +45,7 @@ export default function TranscriptBody({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                        <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+                        <DropdownMenuLabel>View Settings</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuCheckboxItem
                             checked={showTimestamps}
@@ -52,12 +53,48 @@ export default function TranscriptBody({
                         >
                             Timestamps
                         </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                            checked={showSpeaker}
+                            onCheckedChange={setShowSpeaker}
+                        >
+                            Speaker
+                        </DropdownMenuCheckboxItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="max-h-[55vh] whitespace-pre-wrap">
-                {transcript.text}
+            <div className="max-h-[55vh]">
+                {transcript.transcript.map((paragraph, index) => {
+                    return (
+                        <div
+                            key={index.toString()}
+                            className="flex flex-row gap-2"
+                        >
+                            {showTimestamps && (
+                                <div className="whitespace-pre">
+                                    {stringifyTimestamp(paragraph.startTime)}
+                                    {" - "}
+                                    {stringifyTimestamp(paragraph.endTime)}
+                                </div>
+                            )}
+
+                            {showSpeaker && (
+                                <div className="whitespace-pre">{`Speaker ${paragraph.speakerId}`}</div>
+                            )}
+                            <div className="whitespace-pre-wrap">
+                                {paragraph.sentence}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </ScrollArea>
     );
+}
+
+function stringifyTimestamp(seconds: number): string {
+    const hours: number = Math.floor(seconds / 3600);
+    const minutes: number = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds: number = seconds % 60;
+
+    return `${hours.toString()}:${minutes.toString().padStart(2, "0")}:${remainingSeconds.toFixed(2).padStart(5, "0")}`;
 }

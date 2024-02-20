@@ -10,9 +10,11 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import TranscriptBody from "./meeting-body-transcript";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Input } from "./ui/name-input";
 
 export default function MeetingComponent(meeting: Meeting) {
     const [isHighlighted, setHighlighted] = useState<boolean>(false);
+    const [name, setName] = useState<string>(meeting.name);
 
     const utils = api.useUtils();
     const deleteMutation = api.meeting.delete.useMutation();
@@ -21,12 +23,29 @@ export default function MeetingComponent(meeting: Meeting) {
     return (
         <AccordionItem value={meeting.id} className="relative px-4">
             <AccordionTrigger onHover={setHighlighted}>
-                <div className="flex w-60 flex-col items-start">
-                    <span
-                        className={`text-lg font-bold ${isHighlighted ? "underline" : ""}`}
+                <div className="flex flex-col items-start">
+                    <div
+                        className={`relative z-20 whitespace-pre text-lg font-bold text-transparent`}
                     >
-                        {meeting.name}
-                    </span>
+                        {name}
+                        <Input
+                            type="text"
+                            defaultValue={name}
+                            className="absolute left-0 top-0 z-30 h-full w-full bg-transparent"
+                            onChange={(event: any) => {
+                                setName(event.target.value);
+                            }}
+                            onKeyUp={(event) => {
+                                if (
+                                    event.key === " " ||
+                                    event.key === "Spacebar"
+                                ) {
+                                    event.preventDefault();
+                                    // event.stopPropagation();
+                                }
+                            }}
+                        />
+                    </div>
                     <span className="whitespace-pre text-sm text-gray-600">
                         {stringifyDate(meeting.createdAt)}
                     </span>

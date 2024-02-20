@@ -8,7 +8,15 @@ type Meeting = {
 type Transcript = {
     id: string;
     createdAt: Date;
+    transcript: [
+        {
+            startTime: number;
+            endTime: number;
+            speakerId: number;
+            sentence: string;
+        },
+    ];
     text: string;
     meetingId: string;
-    rawResponse: string;
+    rawResponse: JSON;
 };
