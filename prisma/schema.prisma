@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite" // After changing to postgres change rawResponses to Json from String
+    provider = "sqlite"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -14,14 +14,22 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// enum Status {
+//     ready
+//     pending
+//     done
+//     error
+// }
+
 model Transcript {
     id          String   @id @default(cuid())
     createdAt   DateTime @default(now())
     text        String
     transcript  String
+    status      String // When changing to postgres -> change status to Enum from String
     meeting     Meeting  @relation(fields: [meetingId], references: [id])
     meetingId   String   @unique
-    rawResponse String
+    rawResponse String // When changing to postgres -> change rawResponses to Json from String
 
     @@index([id])
 }

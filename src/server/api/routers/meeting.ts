@@ -2,6 +2,34 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { UTApi } from "uploadthing/server";
+import { db } from "~/server/db";
+
+export async function createMeeting(
+    fileUrl: string,
+    name: string,
+    userId: string,
+) {
+    const meeting = await db.meeting.create({
+        data: {
+            id: fileUrl.substring(fileUrl.lastIndexOf("/") + 1),
+            name: name,
+            url: fileUrl,
+            createdBy: { connect: { id: userId } },
+            // createdAt: new Date(
+            //     new Date().setDate(new Date().getDate() - 10),
+            // ),
+        },
+    });
+
+    await db.meetingToUser.create({
+        data: {
+            meeting: { connect: { id: meeting.id } },
+            user: { connect: { id: userId } },
+        },
+    });
+
+    return meeting;
+}
 
 export const meetingRouter = createTRPCRouter({
     getAllOwned: protectedProcedure.query(async ({ ctx }) => {
@@ -10,31 +38,21 @@ export const meetingRouter = createTRPCRouter({
         });
         return meetings;
     }),
-    // create: protectedProcedure
-    //     .input(z.object({ name: z.string(), url: z.string().url() }))
-    //     .mutation(async ({ ctx, input }) => {
-    //         const meeting = await ctx.db.meeting.create({
-    //             data: {
-    //                 id: input.url.substring(input.url.lastIndexOf("/") + 1),
-    //                 name: input.name,
-    //                 url: input.url,
-    //                 createdBy: { connect: { id: ctx.session.user.id } },
-    //             },
-    //         });
+    create: protectedProcedure
+        .input(z.object({ name: z.string(), url: z.string().url() }))
+        .mutation(async ({ ctx, input }) => {
+            const meeting = await createMeeting(
+                input.url,
+                input.name,
+                ctx.session.user.id,
+            );
 
-    //         await ctx.db.meetingToUser.create({
-    //             data: {
-    //                 meeting: { connect: { id: meeting.id } },
-    //                 user: { connect: { id: ctx.session.user.id } },
-    //             },
-    //         });
-
-    //         return {
-    //             data: {
-    //                 ...meeting,
-    //             },
-    //         };
-    //     }),
+            return {
+                data: {
+                    ...meeting,
+                },
+            };
+        }),
     delete: protectedProcedure
         .input(z.object({ meetingId: z.string() }))
         .mutation(async ({ ctx, input }) => {
@@ -58,5 +76,13 @@ export const meetingRouter = createTRPCRouter({
             await ctx.db.meeting.delete({ where: { id: input.meetingId } });
 
             return { message: "ok" };
+        }),
+    rename: protectedProcedure
+        .input(z.object({ meetingId: z.string(), newName: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.meeting.update({
+                where: { id: input.meetingId },
+                data: { name: input.newName },
+            });
         }),
 });

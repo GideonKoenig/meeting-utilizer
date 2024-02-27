@@ -22,7 +22,7 @@ export default function MeetingContainer() {
     return (
         <div className="flex flex-col gap-5">
             {groupAndSortMeetings(meetings).map((meetingGroup) => (
-                <div>
+                <div key={meetingGroup.date.toISOString()}>
                     <span className="pl-2 text-xs">
                         {meetingGroup.date
                             .toISOString()

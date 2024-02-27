@@ -12,32 +12,58 @@ import {
 } from "./ui/dropdown-menu";
 import { useState } from "react";
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
+import { cn } from "~/lib/utils";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
 interface TrnanscriptBodyProps {
-    meetingId: string;
-    className: string;
+    transcript: Transcript | undefined;
+    className?: string;
 }
 
 export default function TranscriptBody({
-    meetingId,
+    transcript,
     className,
 }: TrnanscriptBodyProps) {
     const [showTimestamps, setShowTimestamps] = useState<Checked>(true);
     const [showSpeaker, setShowSpeaker] = useState<Checked>(true);
-
-    const transcript: Transcript | undefined = api.transcript.get.useQuery({
-        meetingId: meetingId,
-    }).data;
 
     if (!transcript) {
         return <div>No Transcription found!</div>;
     }
 
     return (
-        <ScrollArea className={className}>
-            <div className=" absolute right-3 top-0">
+        <div className={cn("flex", className)}>
+            <ScrollArea className="flex-grow">
+                <div className="flex max-h-[55vh] flex-col gap-2">
+                    {transcript.transcript.map((paragraph, index) => {
+                        return (
+                            <div
+                                key={index.toString()}
+                                className="flex flex-row gap-2"
+                            >
+                                {showTimestamps && (
+                                    <div className="whitespace-pre">
+                                        {stringifyTimestamp(
+                                            paragraph.startTime,
+                                        )}
+                                        {" - "}
+                                        {stringifyTimestamp(paragraph.endTime)}
+                                    </div>
+                                )}
+
+                                {showSpeaker && (
+                                    <div className="whitespace-pre">{`Speaker ${paragraph.speakerId}`}</div>
+                                )}
+                                <div className="whitespace-pre-wrap">
+                                    {paragraph.sentence}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </ScrollArea>
+            <div className="right-1 top-0 w-10">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -62,32 +88,7 @@ export default function TranscriptBody({
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="max-h-[55vh]">
-                {transcript.transcript.map((paragraph, index) => {
-                    return (
-                        <div
-                            key={index.toString()}
-                            className="flex flex-row gap-2"
-                        >
-                            {showTimestamps && (
-                                <div className="whitespace-pre">
-                                    {stringifyTimestamp(paragraph.startTime)}
-                                    {" - "}
-                                    {stringifyTimestamp(paragraph.endTime)}
-                                </div>
-                            )}
-
-                            {showSpeaker && (
-                                <div className="whitespace-pre">{`Speaker ${paragraph.speakerId}`}</div>
-                            )}
-                            <div className="whitespace-pre-wrap">
-                                {paragraph.sentence}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </ScrollArea>
+        </div>
     );
 }
 
