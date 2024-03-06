@@ -1,7 +1,7 @@
 "use client";
 import { api } from "~/trpc/react";
-import { Accordion } from "./ui/accordion";
-import MeetingComponent from "./meeting";
+import { Accordion } from "../ui/accordion";
+import MeetingComponent from "../meeting-subcomponents/meeting";
 import { useSession } from "next-auth/react";
 
 export default function MeetingContainer() {

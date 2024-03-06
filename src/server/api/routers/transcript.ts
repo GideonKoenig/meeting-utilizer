@@ -3,7 +3,12 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { env } from "~/env";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { api } from "~/trpc/server";
+import {
+    type CustomResponseType,
+    createTranscriptSkeleton,
+    parseFromDB,
+    stringifyTimestamp,
+} from "./transcript-utils";
 
 export const transcriptRouter = createTRPCRouter({
     get: protectedProcedure
@@ -13,9 +18,47 @@ export const transcriptRouter = createTRPCRouter({
                 where: { meeting: { id: input.meetingId } },
             });
 
-            return transcript ? parseFromDB(transcript) : undefined;
+            if (!transcript) {
+                return undefined;
+            }
+
+            return parseFromDB(transcript);
         }),
-    create: protectedProcedure
+    setStatus: protectedProcedure
+        .input(
+            z.object({
+                meetingId: z.string(),
+                status: z.enum(["done", "pending", "error", "ready"]),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.transcript.update({
+                where: {
+                    meetingId: input.meetingId,
+                },
+                data: {
+                    status: input.status,
+                },
+            });
+        }),
+    createSkeleton: protectedProcedure
+        .input(z.object({ meetingId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const meeting: Meeting | null = await ctx.db.meeting.findFirst({
+                where: { id: input.meetingId },
+            });
+
+            if (!meeting) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Unable to locate meeting <${input.meetingId}>}.`,
+                });
+            }
+
+            await createTranscriptSkeleton(input.meetingId);
+            return true;
+        }),
+    populate: protectedProcedure
         .input(z.object({ meetingId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             const deepgram: DeepgramClient = createClient(env.DEEPGRAM_API_KEY);
@@ -27,6 +70,17 @@ export const transcriptRouter = createTRPCRouter({
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: `Unable to locate meeting <${input.meetingId}>}.`,
+                });
+            }
+
+            const tmp = await ctx.db.transcript.findFirst({
+                where: { meetingId: input.meetingId },
+            });
+
+            if (!tmp) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Unable to locate transcript for meeting <${input.meetingId}>}.`,
                 });
             }
 
@@ -73,7 +127,6 @@ export const transcriptRouter = createTRPCRouter({
             /* The Type definition from deepgram is imperfect */
             const resultTyped: CustomResponseType =
                 result as CustomResponseType;
-
             // console.dir(result, { depth: null });
 
             const paragraphs =
@@ -117,145 +170,39 @@ export const transcriptRouter = createTRPCRouter({
                       };
                   });
 
-            const transcript = await ctx.db.transcript.create({
+            const done: Status = "done";
+            const transcript = await ctx.db.transcript.update({
+                where: {
+                    meetingId: input.meetingId,
+                },
                 data: {
+                    status: done,
+                    createdAt: new Date(),
+                    model: "2-general-nova",
                     text: transcriptText,
-                    transcript: JSON.stringify(transcriptJSON),
-                    meeting: { connect: { id: input.meetingId } },
+                    transcriptParagraphs: JSON.stringify(transcriptJSON),
                     rawResponse: JSON.stringify(result),
                 },
             });
 
-            return parseFromDB(transcript);
+            const summary = await ctx.db.summary.findFirst({
+                where: { meetingId: input.meetingId },
+            });
+
+            if (!summary) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Unable to locate summary for meeting <${input.meetingId}>}.`,
+                });
+            }
+            const newStatus: Status = "ready";
+            await ctx.db.summary.update({
+                where: { meetingId: input.meetingId },
+                data: {
+                    status: newStatus,
+                },
+            });
+
+            return parseFromDB(transcript) as Transcript<"done">;
         }),
-    /* This has to be done differently. The logic should get extracted into a function that is called by both endpoints*/
-    // getOrCreate: protectedProcedure
-    //     .input(z.object({ meetingId: z.string() }))
-    //     .mutation(async ({ ctx, input }) => {
-    //         const entry: Transcript | null = transcriptRouter.get({
-    //             meetingId: input.meetingId,
-    //         });
-
-    //         if (entry) {
-    //             return entry;
-    //         }
-    //         return null;
-
-    //         // const tmp = await api.
-    //     }),
 });
-
-function parseFromDB(transcript: {
-    id: string;
-    createdAt: Date;
-    text: string;
-    transcript: string;
-    meetingId: string;
-    rawResponse: string;
-}): Transcript {
-    return {
-        ...transcript,
-        rawResponse: JSON.parse(transcript.rawResponse),
-        transcript: JSON.parse(transcript.transcript),
-    };
-}
-
-function stringifyTimestamp(seconds: number): string {
-    const hours: number = Math.floor(seconds / 3600);
-    const minutes: number = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds: number = seconds % 60;
-
-    return `${hours.toString()}:${minutes.toString().padStart(2, "0")}:${remainingSeconds.toFixed(2).padStart(5, "0")}`;
-}
-
-type CustomResponseType = typeof samnpleResponseForTypeDefinition;
-
-const samnpleResponseForTypeDefinition = {
-    metadata: {
-        transaction_key: "deprecated",
-        request_id: "c02b9124-6283-4ade-bc88-ed81c91c9732",
-        sha256: "4f72cd1c359d041edb232a65dcb749903357b49688878bbacd2731dad3ba5431",
-        created: "2024-02-18T15:17:37.407Z",
-        duration: 4.92,
-        channels: 1,
-        models: ["5dfee07e-f258-48ad-8238-c7454cc20964"],
-        model_info: {
-            "5dfee07e-f258-48ad-8238-c7454cc20964": {
-                name: "2-general-nova",
-                version: "2023-11-27.5762",
-                arch: "nova-2",
-            },
-        },
-    },
-    results: {
-        channels: [
-            {
-                alternatives: [
-                    {
-                        transcript: "Test, hallo, guten Morgen.",
-                        confidence: 0.99316406,
-                        words: [
-                            {
-                                word: "test",
-                                start: 0.96,
-                                end: 1.46,
-                                confidence: 0.82470703,
-                                speaker: 0,
-                                speaker_confidence: 1,
-                                punctuated_word: "Test,",
-                            },
-                            {
-                                word: "hallo",
-                                start: 1.52,
-                                end: 2.02,
-                                confidence: 0.8059082,
-                                speaker: 0,
-                                speaker_confidence: 1,
-                                punctuated_word: "hallo,",
-                            },
-                            {
-                                word: "guten",
-                                start: 2.24,
-                                end: 2.72,
-                                confidence: 0.99902344,
-                                speaker: 0,
-                                speaker_confidence: 1,
-                                punctuated_word: "guten",
-                            },
-                            {
-                                word: "morgen",
-                                start: 2.72,
-                                end: 3.22,
-                                confidence: 0.99316406,
-                                speaker: 0,
-                                speaker_confidence: 1,
-                                punctuated_word: "Morgen.",
-                            },
-                        ],
-                        paragraphs: {
-                            transcript:
-                                "\nSpeaker 0: Test, hallo, guten Morgen.",
-                            paragraphs: [
-                                {
-                                    sentences: [
-                                        {
-                                            text: "Test, hallo, guten Morgen.",
-                                            start: 0.96,
-                                            end: 3.22,
-                                        },
-                                    ],
-                                    speaker: 0,
-                                    num_words: 4,
-                                    start: 0.96,
-                                    end: 3.22,
-                                },
-                            ],
-                        },
-                    },
-                ],
-                detected_language: "de",
-                language_confidence: 0.99291784,
-            },
-        ],
-    },
-};

@@ -1,6 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { createMeeting } from "~/server/api/routers/meeting";
+import { createMeeting } from "~/server/api/routers/meeting-utils";
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -22,9 +22,9 @@ export const ourFileRouter = {
             return { userId: session.user.id };
         })
         .onUploadComplete(async ({ metadata, file }) => {
-            const meeting = await createMeeting(
+            await createMeeting(
                 file.url,
-                file.name,
+                file.name.substring(0, file.name.lastIndexOf(".")),
                 metadata.userId,
             );
         }),

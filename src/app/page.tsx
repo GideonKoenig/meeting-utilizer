@@ -1,7 +1,7 @@
 "use client";
 import NavMenu from "./_components/main-navigation-menu";
-import MeetingContainer from "./_components/meeting-container";
-import MeetingForm from "./_components/meeting-form";
+import MeetingContainer from "./_components/meeting-page/meeting-container";
+import MeetingForm from "./_components/meeting-page/meeting-form";
 import { ToggleGroup, ToggleGroupItem } from "./_components/ui/toggle-group";
 
 export default function Home() {

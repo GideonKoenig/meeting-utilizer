@@ -1,7 +1,6 @@
-import { api } from "~/trpc/react";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea } from "../ui/scroll-area";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -9,22 +8,22 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import { useState } from "react";
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 import { cn } from "~/lib/utils";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
-interface TrnanscriptBodyProps {
-    transcript: Transcript | undefined;
+interface TranscriptBodyProps {
+    transcript: TranscriptWithUnknownStatus | undefined;
     className?: string;
 }
 
 export default function TranscriptBody({
     transcript,
     className,
-}: TrnanscriptBodyProps) {
+}: TranscriptBodyProps) {
     const [showTimestamps, setShowTimestamps] = useState<Checked>(true);
     const [showSpeaker, setShowSpeaker] = useState<Checked>(true);
 
@@ -32,11 +31,21 @@ export default function TranscriptBody({
         return <div>No Transcription found!</div>;
     }
 
+    function isTranscriptDone(
+        transcript: TranscriptWithUnknownStatus,
+    ): transcript is FullTranscript {
+        return transcript.status === "done";
+    }
+
+    if (!isTranscriptDone(transcript)) {
+        return <div>Transcription isn't ready yet! How do you see this?</div>;
+    }
+
     return (
-        <div className={cn("flex", className)}>
-            <ScrollArea className="flex-grow">
+        <div className={cn("relative", className)}>
+            <ScrollArea className="w-full pr-10">
                 <div className="flex max-h-[55vh] flex-col gap-2">
-                    {transcript.transcript.map((paragraph, index) => {
+                    {transcript.transcriptParagraphs.map((paragraph, index) => {
                         return (
                             <div
                                 key={index.toString()}
@@ -63,7 +72,7 @@ export default function TranscriptBody({
                     })}
                 </div>
             </ScrollArea>
-            <div className="right-1 top-0 w-10">
+            <div className="absolute right-1 top-0 w-10">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">

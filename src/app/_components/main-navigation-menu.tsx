@@ -4,11 +4,9 @@ import Link from "next/link";
 
 import {
     NavigationMenu,
-    NavigationMenuContent,
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuList,
-    NavigationMenuTrigger,
     navigationMenuTriggerStyle,
 } from "~/app/_components/ui/navigation-menu";
 import { useSession } from "next-auth/react";

@@ -21,15 +21,42 @@ datasource db {
 //     error
 // }
 
-model Transcript {
-    id          String   @id @default(cuid())
-    createdAt   DateTime @default(now())
-    text        String
-    transcript  String
+model Chat {
+    id        String   @id @default(cuid())
+    name      String
+    createdAt DateTime @default(now())
+    lastUsed  DateTime @default(now())
+    model     String
+    messages  String // When changing to postgres -> change to String[]
+    meeting   Meeting  @relation(fields: [meetingId], references: [id])
+    meetingId String
+
+    @@index([id])
+}
+
+model Summary {
+    id          String    @id @default(cuid())
+    createdAt   DateTime?
+    model       String?
+    summary     String?
     status      String // When changing to postgres -> change status to Enum from String
-    meeting     Meeting  @relation(fields: [meetingId], references: [id])
-    meetingId   String   @unique
-    rawResponse String // When changing to postgres -> change rawResponses to Json from String
+    meeting     Meeting   @relation(fields: [meetingId], references: [id])
+    meetingId   String    @unique
+    rawResponse String? // When changing to postgres -> change rawResponses to Json from String
+
+    @@index([id])
+}
+
+model Transcript {
+    id                   String    @id @default(cuid())
+    createdAt            DateTime?
+    model                String?
+    text                 String?
+    transcriptParagraphs String?
+    status               String // When changing to postgres -> change status to Enum from String
+    meeting              Meeting   @relation(fields: [meetingId], references: [id])
+    meetingId            String    @unique
+    rawResponse          String? // When changing to postgres -> change rawResponses to Json from String
 
     @@index([id])
 }
@@ -43,6 +70,8 @@ model Meeting {
     createdById String
     user        MeetingToUser[]
     transcript  Transcript?
+    summary     Summary?
+    chats       Chat[]
 
     @@index([id])
 }

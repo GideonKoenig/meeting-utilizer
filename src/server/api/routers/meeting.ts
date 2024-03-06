@@ -2,34 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { UTApi } from "uploadthing/server";
-import { db } from "~/server/db";
-
-export async function createMeeting(
-    fileUrl: string,
-    name: string,
-    userId: string,
-) {
-    const meeting = await db.meeting.create({
-        data: {
-            id: fileUrl.substring(fileUrl.lastIndexOf("/") + 1),
-            name: name,
-            url: fileUrl,
-            createdBy: { connect: { id: userId } },
-            // createdAt: new Date(
-            //     new Date().setDate(new Date().getDate() - 10),
-            // ),
-        },
-    });
-
-    await db.meetingToUser.create({
-        data: {
-            meeting: { connect: { id: meeting.id } },
-            user: { connect: { id: userId } },
-        },
-    });
-
-    return meeting;
-}
+import { createMeeting } from "./meeting-utils";
 
 export const meetingRouter = createTRPCRouter({
     getAllOwned: protectedProcedure.query(async ({ ctx }) => {
@@ -67,9 +40,22 @@ export const meetingRouter = createTRPCRouter({
                 });
             }
 
-            await ctx.db.transcript.delete({
-                where: { meetingId: input.meetingId },
+            const summary = await ctx.db.summary.findFirst({
+                where: { meeting: { id: input.meetingId } },
             });
+            if (summary) {
+                await ctx.db.summary.delete({
+                    where: { meetingId: input.meetingId },
+                });
+            }
+            const transcript = await ctx.db.transcript.findFirst({
+                where: { meeting: { id: input.meetingId } },
+            });
+            if (transcript) {
+                await ctx.db.transcript.delete({
+                    where: { meetingId: input.meetingId },
+                });
+            }
             await ctx.db.meetingToUser.deleteMany({
                 where: { meetingId: input.meetingId },
             });

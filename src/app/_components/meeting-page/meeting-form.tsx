@@ -5,8 +5,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "./ui/dialog";
-import { UploadButton } from "./ui/uploadthing";
+} from "../ui/dialog";
+import { UploadButton } from "../ui/uploadthing";
 import { api } from "~/trpc/react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
