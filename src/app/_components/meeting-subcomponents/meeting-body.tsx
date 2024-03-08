@@ -7,12 +7,17 @@ import { api } from "~/trpc/react";
 import { getStatusIcon, usePersistedState } from "./utils";
 import SummaryBody from "./meeting-body-summary";
 import ChatBody from "./meeting-body-chat";
+import { useEffect } from "react";
 
 type MeetingBodyProps = {
     meeting: Meeting;
 };
 
 export default function MeetingBody({ meeting }: MeetingBodyProps) {
+    useEffect(() => {
+        console.log("reloaded meeting body");
+    }, []);
+
     const [activeTab, setActiveTab] = usePersistedState<string>(
         `activeTab - ${meeting.id}`,
         "",

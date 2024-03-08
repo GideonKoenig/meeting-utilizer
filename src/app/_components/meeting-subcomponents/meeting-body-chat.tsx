@@ -1,6 +1,6 @@
 import { type Message } from "ai";
 import { api } from "~/trpc/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarImage } from "../ui/avatar";
@@ -14,14 +14,22 @@ export default function ChatBody({ meetingId }: ChatBodyProps) {
     const [chatActive, setChatActive] = useState<Chat<Message> | undefined>(
         undefined,
     );
+    const [chatList, setChatList] = useState<Chat<Message>[]>([]);
+    const chatListInitial: Chat<Message>[] =
+        api.chat.getList.useQuery(
+            {
+                meetingId: meetingId,
+            },
+            {
+                onSuccess: (data: Chat<Message>[]) => {
+                    setChatList(data);
+                },
+            },
+        ).data ?? [];
 
-    const chatList: Chat<Message>[] | undefined = api.chat.getList.useQuery({
-        meetingId: meetingId,
-    }).data;
-
-    if (!chatList) {
-        return <div>Unable to retriev ChatList!</div>;
-    }
+    const addNewChatToList = (chat: Chat<Message>): void => {
+        setChatList([...chatList, chat]);
+    };
 
     return (
         <div className="flex h-[55vh] flex-row">
@@ -50,9 +58,10 @@ export default function ChatBody({ meetingId }: ChatBodyProps) {
                                     key={chat.id}
                                     size="custom"
                                     variant="outline"
-                                    className="justify-start px-2 py-1.5"
+                                    className={`justify-start px-2 py-1.5 ${chat === chatActive ? "bg-red-500" : ""}`}
                                     onClick={() => {
                                         setChatActive(chat);
+                                        console.log("Set New Chat as active");
                                     }}
                                 >
                                     {chat.name}
@@ -64,7 +73,13 @@ export default function ChatBody({ meetingId }: ChatBodyProps) {
             </div>
 
             <div className=" h-full w-full flex-grow rounded border-2">
-                <Chat chatId={chatActive?.id}></Chat>
+                <Chat
+                    meetingId={meetingId}
+                    chatId={chatActive?.id}
+                    addNewChatToList={addNewChatToList}
+                    chatActive={chatActive}
+                    setChatActive={setChatActive}
+                ></Chat>
             </div>
         </div>
     );

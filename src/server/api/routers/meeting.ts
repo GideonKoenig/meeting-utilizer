@@ -40,6 +40,14 @@ export const meetingRouter = createTRPCRouter({
                 });
             }
 
+            const chat = await ctx.db.chat.findFirst({
+                where: { meeting: { id: input.meetingId } },
+            });
+            if (chat) {
+                await ctx.db.chat.deleteMany({
+                    where: { meetingId: input.meetingId },
+                });
+            }
             const summary = await ctx.db.summary.findFirst({
                 where: { meeting: { id: input.meetingId } },
             });
