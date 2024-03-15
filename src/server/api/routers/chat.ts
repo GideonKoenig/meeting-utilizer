@@ -1,9 +1,13 @@
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createChat, parseFromDB } from "./chat-utils";
-import { Message } from "ai/react";
-import { Cctv } from "lucide-react";
+import {
+    addMessage,
+    createChat,
+    createMessage,
+    parseFromDB,
+} from "./chat-utils";
+import { parseFromDB as parseTranscriptFromDB } from "./transcript-utils";
 
 export const chatRouter = createTRPCRouter({
     getList: protectedProcedure
@@ -46,11 +50,34 @@ export const chatRouter = createTRPCRouter({
             const meeting: Meeting | null = await ctx.db.meeting.findFirst({
                 where: { id: input.meetingId },
             });
-
             if (!meeting) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: `Unable to locate meeting <${input.meetingId}>}.`,
+                });
+            }
+
+            const transcript = await ctx.db.transcript.findFirst({
+                where: { meetingId: input.meetingId },
+            });
+            if (!transcript) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Unable to locate transcript for meeting <${input.meetingId}>}.`,
+                });
+            }
+
+            function isTranscriptDone(
+                transcript: TranscriptWithUnknownStatus,
+            ): transcript is FullTranscript {
+                return transcript.status === "done";
+            }
+            const transcriptParsed = parseTranscriptFromDB(transcript);
+
+            if (!isTranscriptDone(transcriptParsed)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Transcript for meeting <${input.meetingId}>} isn't ready yet.`,
                 });
             }
 
@@ -59,38 +86,29 @@ export const chatRouter = createTRPCRouter({
                 input.name,
                 input.model,
             );
-            return parseFromDB(chat);
+            return parseFromDB(
+                await addMessage(
+                    parseFromDB(chat).id,
+                    createMessage(
+                        "system",
+                        `Here is the transcript:\n${transcriptParsed.text}`,
+                    ),
+                ),
+            );
         }),
-    setMessages: protectedProcedure
+    addMessage: protectedProcedure
         .input(
             z.object({
                 chatId: z.string(),
-                messages: z.array(z.unknown()),
+                content: z.string(),
+                role: z.enum(["system", "user", "assistant"]),
             }),
         )
-        .mutation(async ({ ctx, input }) => {
-            const chat = await ctx.db.chat.findFirst({
-                where: { id: input.chatId },
-            });
-
-            if (!chat) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: `Unable to locate chat <${input.chatId}>}.`,
-                });
-            }
-
-            console.log("Mow the printing starts");
-            console.dir(input.messages);
-            console.dir(input.messages as Meeting[]);
-            console.dir((input.messages as Meeting[]).toString());
-
-            // await ctx.db.chat.update({
-            //     where: { id: input.chatId },
-            //     data: {
-            //         messages: (input.messages as Meeting[]).toString(),
-            //     },
-            // });
+        .mutation(async ({ input }) => {
+            await addMessage(
+                input.chatId,
+                createMessage(input.role, input.content),
+            );
             return { message: "success" };
         }),
 });

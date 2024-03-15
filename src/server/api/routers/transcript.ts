@@ -127,7 +127,6 @@ export const transcriptRouter = createTRPCRouter({
             /* The Type definition from deepgram is imperfect */
             const resultTyped: CustomResponseType =
                 result as CustomResponseType;
-            // console.dir(result, { depth: null });
 
             const paragraphs =
                 resultTyped.results.channels[0]?.alternatives[0]?.paragraphs

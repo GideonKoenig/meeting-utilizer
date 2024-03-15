@@ -12,6 +12,8 @@ import {
 import { useState } from "react";
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 import { cn } from "~/lib/utils";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCopy } from "@fortawesome/free-regular-svg-icons";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
@@ -43,7 +45,7 @@ export default function TranscriptBody({
 
     return (
         <div className={cn("relative", className)}>
-            <ScrollArea className="w-full pr-10">
+            <ScrollArea className="w-full pr-12">
                 <div className="flex max-h-[55vh] flex-col gap-2">
                     {transcript.transcriptParagraphs.map((paragraph, index) => {
                         return (
@@ -73,9 +75,22 @@ export default function TranscriptBody({
                 </div>
             </ScrollArea>
             <div className="absolute right-1 top-0 w-10">
+                <Button
+                    className="hover:bg-slate-200"
+                    variant="ghost"
+                    onClick={async () => {
+                        await navigator.clipboard.writeText(transcript.text);
+                    }}
+                >
+                    <FontAwesomeIcon icon={faCopy} />
+                </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-slate-200"
+                        >
                             <DotsHorizontalIcon />
                         </Button>
                     </DropdownMenuTrigger>

@@ -1,39 +1,70 @@
 import { OpenAIStream, StreamingTextResponse } from "ai";
 import OpenAI from "openai";
 import { z } from "zod";
-import { type Message } from "ai";
 import { env } from "~/env";
+import {
+    addMessage,
+    createMessage,
+    getMessages,
+} from "~/server/api/routers/chat-utils";
+import { NextResponse } from "next/server";
+import { getServerAuthSession } from "~/server/auth";
 
+const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 const ChatRequestData = z.object({
-    messages: z.any(),
+    messages: z.array(
+        z.object({
+            id: z.string().optional(),
+            createdAt: z.date().optional(),
+            content: z.string(),
+            role: z.enum(["system", "user", "assistant"]),
+        }),
+    ),
     model: z.string(),
-    chatId: z.string().optional(),
+    chatId: z.string(),
+    newChat: z.boolean(),
 });
 export type ChatRequestBody = Omit<z.infer<typeof ChatRequestData>, "messages">;
 
-const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-
 export async function POST(req: Request) {
-    const result = ChatRequestData.safeParse(await req.json());
+    const session = await getServerAuthSession();
+    if (!session) {
+        return NextResponse.json(
+            { message: "User must be logged in!" },
+            { status: 401 },
+        );
+    }
 
+    const result = ChatRequestData.safeParse(await req.json());
     if (!result.success) {
         return new Response(JSON.stringify({ error: result.error.errors }), {
             status: 400,
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { model, chatId, messages } = result.data;
-    console.dir(messages);
-    console.log(chatId);
-    console.log(model);
+    const { model, messages, chatId, newChat } = result.data;
+    const currentMessage = messages[messages.length - 1]!;
+
+    await addMessage(
+        chatId,
+        createMessage(currentMessage.role, currentMessage.content),
+    );
 
     const stream = await openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        messages: messages,
+        model: model,
+        messages: newChat
+            ? (await getMessages(chatId)).map((message) => {
+                  return { content: message.content, role: message.role };
+              })
+            : messages,
         stream: true,
     });
 
-    return new StreamingTextResponse(OpenAIStream(stream));
+    return new StreamingTextResponse(
+        OpenAIStream(stream, {
+            onCompletion: async (message: string) => {
+                await addMessage(chatId, createMessage("assistant", message));
+            },
+        }),
+    );
 }

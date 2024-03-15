@@ -11,6 +11,8 @@ import {
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 import { cn } from "~/lib/utils";
 import { MarkdownComponent } from "~/styles/markdown-component";
+import { faCopy } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
@@ -40,6 +42,15 @@ export default function SummaryBody({ summary, className }: SummaryBodyProps) {
                 <MarkdownComponent text={summary.summary} />
             </ScrollArea>
             <div className=" absolute right-1 top-0 w-10">
+                <Button
+                    className="hover:bg-slate-200"
+                    variant="ghost"
+                    onClick={async () => {
+                        await navigator.clipboard.writeText(summary.summary);
+                    }}
+                >
+                    <FontAwesomeIcon icon={faCopy} />
+                </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
