@@ -14,7 +14,7 @@ const f = createUploadthing({
 });
 
 export const ourFileRouter = {
-    audioUploader: f({ audio: { maxFileSize: "2GB", maxFileCount: 20 } })
+    audioUploader: f({ audio: { maxFileSize: "2GB", maxFileCount: 100 } })
         .middleware(async () => {
             const session = await getServerAuthSession();
 
@@ -22,11 +22,20 @@ export const ourFileRouter = {
             return { userId: session.user.id };
         })
         .onUploadComplete(async ({ metadata, file }) => {
-            await createMeeting(
-                file.url,
-                file.name.substring(0, file.name.lastIndexOf(".")),
-                metadata.userId,
-            );
+            await createMeeting(file.url, file.name, metadata.userId);
+        }),
+    generalUploader: f({
+        audio: { maxFileSize: "2GB", maxFileCount: 100 },
+        video: { maxFileSize: "2GB", maxFileCount: 100 },
+    })
+        .middleware(async () => {
+            const session = await getServerAuthSession();
+
+            if (!session) throw new UploadThingError("Unauthorized");
+            return { userId: session.user.id };
+        })
+        .onUploadComplete(async ({ metadata, file }) => {
+            await createMeeting(file.url, file.name, metadata.userId);
         }),
 } satisfies FileRouter;
 

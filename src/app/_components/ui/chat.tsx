@@ -77,7 +77,7 @@ export default function Chat({ chatId, meetingId, setChatActive }: ChatProps) {
                                                 </AvatarFallback>
                                             </Avatar>
                                             <span className=" text-base font-bold">
-                                                User
+                                                {session?.user.name}
                                             </span>
                                         </>
                                     ) : (
