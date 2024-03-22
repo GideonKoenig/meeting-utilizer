@@ -2,7 +2,6 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { createMeeting } from "~/server/api/routers/meeting-utils";
 import { getServerAuthSession } from "~/server/auth";
-import { db } from "~/server/db";
 
 const f = createUploadthing({
     errorFormatter: (err) => {
