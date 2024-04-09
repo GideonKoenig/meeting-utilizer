@@ -1,8 +1,8 @@
 "use client";
 
-import NavMenu from "~/_components/layouts/main-navigation-menu";
-import MeetingContainer from "~/_components/meeting-page/meeting-container";
-import MeetingForm from "~/_components/meeting-page/meeting-form";
+import NavMenu from "~/components/layouts/main-navigation-menu";
+import MeetingContainer from "~/components/meeting-page/meeting-container";
+import MeetingForm from "~/components/meeting-page/meeting-form";
 
 export default function Home() {
     return (

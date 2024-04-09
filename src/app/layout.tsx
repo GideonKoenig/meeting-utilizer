@@ -8,8 +8,9 @@ import { getServerAuthSession } from "~/server/auth";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
-import { ThemeProvider } from "~/_components/layouts/theme-providers";
-import SessionProvider from "~/_components/next-auth-session-provider";
+import { ThemeProvider } from "~/components/layouts/theme-providers";
+import SessionProvider from "~/components/layouts/next-auth-session-provider";
+import { Toaster } from "~/components/ui/sonner";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -47,6 +48,7 @@ export default async function RootLayout({
                         </SessionProvider>
                     </ThemeProvider>
                 </TRPCReactProvider>
+                <Toaster />
             </body>
         </html>
     );
