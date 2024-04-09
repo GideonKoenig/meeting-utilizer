@@ -2,15 +2,15 @@
 import * as React from "react";
 import Link from "next/link";
 
+import { useSession } from "next-auth/react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
     NavigationMenu,
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuList,
     navigationMenuTriggerStyle,
-} from "~/app/_components/ui/navigation-menu";
-import { useSession } from "next-auth/react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+} from "../ui/navigation-menu";
 
 export default function NavMenu() {
     const { data: session } = useSession();
