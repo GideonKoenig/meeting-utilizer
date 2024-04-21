@@ -52,7 +52,7 @@ export default function MeetingForm() {
     ) => {
         return async (file: File): Promise<File> => {
             const ffmpeg = ffmpegRef.current;
-            ffmpeg.on("progress", ({ progress, time }) => {
+            ffmpeg.on("progress", ({ progress }) => {
                 progressFunction((progress * 100) / 2, file.name, 0);
             });
             await ffmpeg.writeFile(file.name, await fetchFile(file));
