@@ -1,11 +1,7 @@
 import { useState, useCallback } from "react";
-import {
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "../ui/accordion";
+import * as Accordion from "../../ui/accordion";
 import { api } from "~/trpc/react";
-import { Input } from "../ui/name-input";
+import { Input } from "../../ui/name-input";
 import { debounce } from "lodash";
 import MeetingBody from "./meeting-body";
 import { stringifyDate } from "./utils";
@@ -26,8 +22,8 @@ export default function MeetingComponent(meeting: Meeting) {
     );
 
     return (
-        <AccordionItem value={meeting.id} className="relative px-4">
-            <AccordionTrigger onHover={setHighlighted}>
+        <Accordion.AccordionItem value={meeting.id} className="relative px-4">
+            <Accordion.AccordionTrigger onHover={setHighlighted}>
                 <div className="flex flex-col items-start">
                     <div
                         className={`relative z-20 whitespace-pre text-lg font-bold text-transparent`}
@@ -57,10 +53,10 @@ export default function MeetingComponent(meeting: Meeting) {
                     </span>
                 </div>
                 <div className="flex flex-grow"></div>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-3">
+            </Accordion.AccordionTrigger>
+            <Accordion.AccordionContent className="flex flex-col gap-3">
                 <MeetingBody meeting={meeting} />
-            </AccordionContent>
-        </AccordionItem>
+            </Accordion.AccordionContent>
+        </Accordion.AccordionItem>
     );
 }

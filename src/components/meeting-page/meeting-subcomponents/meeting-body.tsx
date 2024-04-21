@@ -1,7 +1,7 @@
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import Link from "next/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
 import TranscriptBody from "./meeting-body-transcript";
 import { api } from "~/trpc/react";
 import { getStatusIcon, usePersistedState } from "./utils";

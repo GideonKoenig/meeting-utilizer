@@ -1,9 +1,9 @@
 import { api } from "~/trpc/react";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { ScrollArea } from "../ui/scroll-area";
-import { Avatar, AvatarImage } from "../ui/avatar";
-import Chat from "../ui/chat";
+import { Button } from "../../ui/button";
+import { ScrollArea } from "../../ui/scroll-area";
+import { Avatar, AvatarImage } from "../../ui/avatar";
+import Chat from "../../ui/chat";
 import { type Message } from "~/server/api/routers/chat-utils";
 
 interface ChatBodyProps {

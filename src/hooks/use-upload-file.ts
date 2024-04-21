@@ -4,27 +4,54 @@ import type { UploadFilesOptions } from "uploadthing/types";
 import { getErrorMessage } from "~/lib/handle-error";
 import { uploadFiles } from "~/lib/uploadthing";
 import { type OurFileRouter } from "~/app/api/uploadthing/core";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
-interface UseUploadFileProps
-    extends Pick<
-        UploadFilesOptions<OurFileRouter, keyof OurFileRouter>,
-        "headers" | "onUploadBegin" | "onUploadProgress" | "skipPolling"
-    > {}
+type UseUploadFileProps = Pick<
+    UploadFilesOptions<OurFileRouter, keyof OurFileRouter>,
+    "headers" | "onUploadBegin" | "onUploadProgress" | "skipPolling"
+>;
 
 export function useUploadFile(
     endpoint: keyof OurFileRouter,
+    preprocessConstructor: (
+        progressFunction: (
+            progress: number,
+            name: string,
+            offset: number,
+        ) => void,
+    ) => (file: File) => Promise<File>,
     { ...props }: UseUploadFileProps,
 ) {
     const [progresses, setProgresses] = useState<Record<string, number>>({});
     const [isUploading, setIsUploading] = useState(false);
 
+    const changeProgress = useCallback(
+        (progress: number, file: string, offset: number) => {
+            setProgresses((prev) => {
+                return {
+                    ...prev,
+                    [file]: progress + offset,
+                };
+            });
+        },
+        [],
+    );
+
+    const preprocess = preprocessConstructor(changeProgress);
+
     async function uploadThings(files: File[]) {
         setIsUploading(true);
+
+        const filesPreprocessed = await Promise.all(
+            files.map(async (file) => {
+                return preprocess(file);
+            }),
+        );
+
         try {
-            const res = await uploadFiles(endpoint, {
+            await uploadFiles(endpoint, {
                 ...props,
-                files,
+                files: filesPreprocessed,
                 onUploadProgress: ({
                     file,
                     progress,
@@ -32,12 +59,7 @@ export function useUploadFile(
                     file: string;
                     progress: number;
                 }) => {
-                    setProgresses((prev) => {
-                        return {
-                            ...prev,
-                            [file]: progress,
-                        };
-                    });
+                    changeProgress(progress / 2, file, 50);
                 },
             });
         } catch (err) {

@@ -1,6 +1,6 @@
-import { ScrollArea } from "../ui/scroll-area";
+import { ScrollArea } from "../../ui/scroll-area";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -8,7 +8,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "../../ui/dropdown-menu";
 import { useState } from "react";
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 import { cn } from "~/lib/utils";

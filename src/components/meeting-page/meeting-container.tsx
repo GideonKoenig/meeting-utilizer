@@ -1,6 +1,6 @@
 "use client";
 import { api } from "~/trpc/react";
-import { Accordion } from "../ui/accordion";
+import * as Accordion from "../ui/accordion";
 import MeetingComponent from "./meeting-subcomponents/meeting";
 import { useSession } from "next-auth/react";
 
@@ -30,7 +30,7 @@ export default function MeetingContainer() {
                             ?.replaceAll("-", ".")}
                     </span>
                     <div className="flex flex-col gap-4 rounded border-2 p-4">
-                        <Accordion
+                        <Accordion.Accordion
                             type="multiple"
                             className="flex flex-col gap-2"
                         >
@@ -40,7 +40,7 @@ export default function MeetingContainer() {
                                     {...meeting}
                                 ></MeetingComponent>
                             ))}
-                        </Accordion>
+                        </Accordion.Accordion>
                     </div>
                 </div>
             ))}

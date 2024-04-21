@@ -3,14 +3,9 @@ import * as React from "react";
 import Link from "next/link";
 
 import { useSession } from "next-auth/react";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    navigationMenuTriggerStyle,
-} from "../ui/navigation-menu";
+import * as Avatar from "../ui/avatar";
+import * as NavigationMenu from "../ui/navigation-menu";
+import { ModeToggle } from "./mood-toggle";
 
 export default function NavMenu() {
     const { data: session } = useSession();
@@ -20,28 +15,29 @@ export default function NavMenu() {
 
     return (
         <div className="flex flex-row border-b-2 py-2">
-            <NavigationMenu>
-                <NavigationMenuList>
-                    <NavigationMenuItem>
+            <NavigationMenu.NavigationMenu>
+                <NavigationMenu.NavigationMenuList>
+                    <NavigationMenu.NavigationMenuItem>
                         <Link href="/" legacyBehavior passHref>
-                            <NavigationMenuLink
-                                className={navigationMenuTriggerStyle()}
+                            <NavigationMenu.NavigationMenuLink
+                                className={NavigationMenu.navigationMenuTriggerStyle()}
                             >
                                 Home
-                            </NavigationMenuLink>
+                            </NavigationMenu.NavigationMenuLink>
                         </Link>
-                    </NavigationMenuItem>
+                    </NavigationMenu.NavigationMenuItem>
                     {session && (
-                        <NavigationMenuItem>
+                        <NavigationMenu.NavigationMenuItem>
                             Hi {session?.user.name}
-                        </NavigationMenuItem>
+                        </NavigationMenu.NavigationMenuItem>
                     )}
-                </NavigationMenuList>
-            </NavigationMenu>
+                </NavigationMenu.NavigationMenuList>
+            </NavigationMenu.NavigationMenu>
             <div className="flex-grow"></div>
-            <NavigationMenu>
-                <NavigationMenuList>
-                    <NavigationMenuItem>
+            <ModeToggle />
+            <NavigationMenu.NavigationMenu>
+                <NavigationMenu.NavigationMenuList>
+                    <NavigationMenu.NavigationMenuItem>
                         <Link
                             href={
                                 session
@@ -51,26 +47,27 @@ export default function NavMenu() {
                             legacyBehavior
                             passHref
                         >
-                            <NavigationMenuLink
+                            <NavigationMenu.NavigationMenuLink
                                 className={
-                                    navigationMenuTriggerStyle() + " gap-2"
+                                    NavigationMenu.navigationMenuTriggerStyle() +
+                                    " gap-2"
                                 }
                             >
-                                <Avatar className="flex h-8 w-8">
-                                    <AvatarImage
+                                <Avatar.Avatar className="flex h-8 w-8">
+                                    <Avatar.AvatarImage
                                         src={avatar}
                                         alt="@profilpicture"
                                     />
-                                    <AvatarFallback>
+                                    <Avatar.AvatarFallback>
                                         {session?.user.name?.slice(0, 2)}
-                                    </AvatarFallback>
-                                </Avatar>
+                                    </Avatar.AvatarFallback>
+                                </Avatar.Avatar>
                                 {session ? "Sign Out" : "Sign In"}
-                            </NavigationMenuLink>
+                            </NavigationMenu.NavigationMenuLink>
                         </Link>
-                    </NavigationMenuItem>
-                </NavigationMenuList>
-            </NavigationMenu>
+                    </NavigationMenu.NavigationMenuItem>
+                </NavigationMenu.NavigationMenuList>
+            </NavigationMenu.NavigationMenu>
         </div>
     );
 }

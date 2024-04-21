@@ -41,6 +41,22 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
     onUpload?: (files: File[]) => Promise<void>;
 
     /**
+     * Function to be called before files are uploaded.
+     * @type (files: File[]) => File[]
+     * @default undefined
+     * @example onUpload={(files) => doSomething(files)}
+     */
+    onBeforeUpload?: (files: File[]) => Promise<File[]>;
+
+    /**
+     * Function to be called before files are uploaded.
+     * @type (files: File[]) => File[]
+     * @default undefined
+     * @example onUpload={(files) => doSomething(files)}
+     */
+    onClientUploadComplete?: (files: File[]) => Promise<void>;
+
+    /**
      * Progress of the uploaded files.
      * @type Record<string, number> | undefined
      * @default undefined
@@ -97,6 +113,8 @@ export function FileUploader(props: FileUploaderProps) {
         value: valueProp,
         onValueChange,
         onUpload,
+        onBeforeUpload,
+        onClientUploadComplete,
         progresses,
         accept = { "audio/*": [] },
         maxSize = 1024 * 1024 * 2,
@@ -113,7 +131,7 @@ export function FileUploader(props: FileUploaderProps) {
     });
 
     const onDrop = useCallback(
-        (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+        async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
             if (!multiple && maxFiles === 1 && acceptedFiles.length > 1) {
                 toast.error("Cannot upload more than 1 file at a time");
                 return;
@@ -124,11 +142,16 @@ export function FileUploader(props: FileUploaderProps) {
                 return;
             }
 
-            const newFiles = acceptedFiles.map((file) =>
-                Object.assign(file, {
-                    preview: URL.createObjectURL(file),
-                }),
-            );
+            const preprocessedFiles = onBeforeUpload
+                ? await onBeforeUpload(acceptedFiles)
+                : acceptedFiles;
+
+            const newFiles = preprocessedFiles;
+            // const newFiles = preprocessedFils.map((file) => {
+            //     return Object.assign(file, {
+            //         preview: URL.createObjectURL(file),
+            //     });
+            // });
 
             const updatedFiles = files ? [...files, ...newFiles] : newFiles;
 
@@ -152,7 +175,11 @@ export function FileUploader(props: FileUploaderProps) {
 
                 toast.promise(onUpload(updatedFiles), {
                     loading: `Uploading ${target}...`,
-                    success: () => {
+                    success: async () => {
+                        if (onClientUploadComplete && files) {
+                            await onClientUploadComplete(files);
+                        }
+
                         setFiles([]);
                         return `${target} uploaded`;
                     },
@@ -181,7 +208,6 @@ export function FileUploader(props: FileUploaderProps) {
                 }
             });
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isDisabled = disabled || (files?.length ?? 0) >= maxFiles;
@@ -290,9 +316,17 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
                         <p className="line-clamp-1 text-sm font-medium text-foreground/80">
                             {file.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                            {formatBytes(file.size)}
-                        </p>
+                        <div className="flex flex-row gap-1 text-xs text-muted-foreground">
+                            <p>{formatBytes(file.size)}</p>
+                            <p>•</p>
+                            <div>
+                                <p>
+                                    {progress && progress <= 50
+                                        ? "preprocessing"
+                                        : "uploading"}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                     {progress ? <Progress value={progress} /> : null}
                 </div>
@@ -304,6 +338,7 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
                     size="icon"
                     className="size-7"
                     onClick={onRemove}
+                    disabled={true}
                 >
                     <Cross2Icon className="size-4 " aria-hidden="true" />
                     <span className="sr-only">Remove file</span>
