@@ -1,4 +1,4 @@
-import { type DeepgramClient, createClient, CallbackUrl } from "@deepgram/sdk";
+import { type DeepgramClient, createClient } from "@deepgram/sdk";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { env } from "~/env";
 import { z } from "zod";
@@ -85,11 +85,10 @@ export const transcriptRouter = createTRPCRouter({
             }
 
             const { result, error } =
-                await deepgram.listen.prerecorded.transcribeUrlCallback(
+                await deepgram.listen.prerecorded.transcribeUrl(
                     {
                         url: meeting.url,
                     },
-                    new CallbackUrl("http://localhost:3000/api/deepgram"),
                     {
                         model: "nova-2-general" /* whisper-large */,
                         smart_format: true,
@@ -106,8 +105,7 @@ export const transcriptRouter = createTRPCRouter({
                         // numerals: false, // english only
                         // search: undefined,
                         // replace: undefined, // max is 200
-                        callback: "http://localhost:3000/api/deepgram",
-                        callback_method: "post",
+                        // callback: undefined,
                         // keywords: [], // max 50
                         // tag: undefined,
                         // detect_entities: false, // english only - beta feature
@@ -121,89 +119,89 @@ export const transcriptRouter = createTRPCRouter({
                     },
                 );
 
-            // if (error) {
-            //     error.message = `${error.name}: ${error.message}`;
-            //     throw error;
-            // }
+            if (error) {
+                error.message = `${error.name}: ${error.message}`;
+                throw error;
+            }
 
-            // /* The Type definition from deepgram is imperfect */
-            // const resultTyped: CustomResponseType =
-            //     result as CustomResponseType;
+            /* The Type definition from deepgram is imperfect */
+            const resultTyped: CustomResponseType =
+                result as CustomResponseType;
 
-            // const paragraphs =
-            //     resultTyped.results.channels[0]?.alternatives[0]?.paragraphs
-            //         ?.paragraphs;
+            const paragraphs =
+                resultTyped.results.channels[0]?.alternatives[0]?.paragraphs
+                    ?.paragraphs;
 
-            // const transcriptText = !paragraphs
-            //     ? ""
-            //     : paragraphs
-            //           .map((paragraph) => {
-            //               const speaker = paragraph.speaker;
-            //               const start = stringifyTimestamp(paragraph.start);
-            //               const end = stringifyTimestamp(paragraph.end);
-            //               const text = paragraph.sentences
-            //                   .map((sentence) => {
-            //                       return sentence.text;
-            //                   })
-            //                   .join(" ");
+            const transcriptText = !paragraphs
+                ? ""
+                : paragraphs
+                      .map((paragraph) => {
+                          const speaker = paragraph.speaker;
+                          const start = stringifyTimestamp(paragraph.start);
+                          const end = stringifyTimestamp(paragraph.end);
+                          const text = paragraph.sentences
+                              .map((sentence) => {
+                                  return sentence.text;
+                              })
+                              .join(" ");
 
-            //               return `${start} - ${end} Speaker ${speaker}: ${text}`;
-            //           })
-            //           .join("\n");
+                          return `${start} - ${end} Speaker ${speaker}: ${text}`;
+                      })
+                      .join("\n");
 
-            // const transcriptJSON: {
-            //     startTime: number;
-            //     endTime: number;
-            //     speakerId: number;
-            //     sentence: string;
-            // }[] = !paragraphs
-            //     ? []
-            //     : paragraphs.map((paragraph) => {
-            //           return {
-            //               speakerId: paragraph.speaker,
-            //               startTime: paragraph.start,
-            //               endTime: paragraph.end,
-            //               sentence: paragraph.sentences
-            //                   .map((sentence) => {
-            //                       return sentence.text;
-            //                   })
-            //                   .join(" "),
-            //           };
-            //       });
+            const transcriptJSON: {
+                startTime: number;
+                endTime: number;
+                speakerId: number;
+                sentence: string;
+            }[] = !paragraphs
+                ? []
+                : paragraphs.map((paragraph) => {
+                      return {
+                          speakerId: paragraph.speaker,
+                          startTime: paragraph.start,
+                          endTime: paragraph.end,
+                          sentence: paragraph.sentences
+                              .map((sentence) => {
+                                  return sentence.text;
+                              })
+                              .join(" "),
+                      };
+                  });
 
-            // const done: Status = "done";
-            // const transcript = await ctx.db.transcript.update({
-            //     where: {
-            //         meetingId: input.meetingId,
-            //     },
-            //     data: {
-            //         status: done,
-            //         createdAt: new Date(),
-            //         model: "2-general-nova",
-            //         text: transcriptText,
-            //         transcriptParagraphs: JSON.stringify(transcriptJSON),
-            //         rawResponse: JSON.stringify(result),
-            //     },
-            // });
+            const done: Status = "done";
+            const transcript = await ctx.db.transcript.update({
+                where: {
+                    meetingId: input.meetingId,
+                },
+                data: {
+                    status: done,
+                    createdAt: new Date(),
+                    model: "2-general-nova",
+                    text: transcriptText,
+                    transcriptParagraphs: JSON.stringify(transcriptJSON),
+                    rawResponse: JSON.stringify(result),
+                },
+            });
 
-            // const summary = await ctx.db.summary.findFirst({
-            //     where: { meetingId: input.meetingId },
-            // });
+            const summary = await ctx.db.summary.findFirst({
+                where: { meetingId: input.meetingId },
+            });
 
-            // if (!summary) {
-            //     throw new TRPCError({
-            //         code: "BAD_REQUEST",
-            //         message: `Unable to locate summary for meeting <${input.meetingId}>}.`,
-            //     });
-            // }
-            // const newStatus: Status = "ready";
-            // await ctx.db.summary.update({
-            //     where: { meetingId: input.meetingId },
-            //     data: {
-            //         status: newStatus,
-            //     },
-            // });
+            if (!summary) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Unable to locate summary for meeting <${input.meetingId}>}.`,
+                });
+            }
+            const newStatus: Status = "ready";
+            await ctx.db.summary.update({
+                where: { meetingId: input.meetingId },
+                data: {
+                    status: newStatus,
+                },
+            });
 
-            // return parseFromDB(transcript) as Transcript<"done">;
+            return parseFromDB(transcript) as Transcript<"done">;
         }),
 });
