@@ -10,6 +10,8 @@ import {
 import { NextResponse } from "next/server";
 import { getServerAuthSession } from "~/server/auth";
 
+export const maxDuration = 300;
+
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 const ChatRequestData = z.object({
     messages: z.array(
