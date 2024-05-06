@@ -91,7 +91,7 @@ export const chatRouter = createTRPCRouter({
                     parseFromDB(chat).id,
                     createMessage(
                         "system",
-                        `Here is the transcript:\n${transcriptParsed.text}`,
+                        `Hier ist das Transkript:\n${transcriptParsed.text}`,
                     ),
                 ),
             );
