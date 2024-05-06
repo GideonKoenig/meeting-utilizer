@@ -91,8 +91,8 @@ export const summaryRouter = createTRPCRouter({
 
             const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-            const systemPrompt = `You are a highly skilled summarization assistant tasked with creating a detailed, flowing report from a given transcript. The format you produce is markdown.`;
-            const userPrompt = `Your objective is to create a cohesive narrative that captures all key topics, points, decisions, and actions discussed throughout the following transcript. Your output should serve as a comprehensive report, offering readers a complete understanding of the transcript discussions, regardless of their attendance.\n\n${transcript.text}`;
+            const systemPrompt = `Du bist ein hochqualifizierter Assistent für Zusammenfassungen und hast die Aufgabe, einen detaillierten, fließenden Bericht aus einem vorgegebenen Transkript zu erstellen. Das Format, das du erzeugst, ist Markdown.`;
+            const userPrompt = `Das Ziel ist es, einen zusammenhängenden Bericht zu erstellen, der alle wichtigen Themen, Punkte, Entscheidungen und Handlungen enthält, die in dem folgenden Transkript besprochen wurden. Das Ergebnis sollte ein umfassender Bericht sein, der dem Leser ein vollständiges Verständnis der Diskussionen in dem Transkript vermittelt, unabhängig davon, ob er anwesend war oder nicht.\n\n${transcript.text}`;
             const completion = await openai.chat.completions.create({
                 messages: [
                     {
