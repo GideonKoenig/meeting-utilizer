@@ -3,7 +3,6 @@
 import NavMenu from "~/components/layouts/main-navigation-menu";
 import MeetingContainer from "~/components/meeting-page/meeting-container";
 import MeetingForm from "~/components/meeting-page/meeting-form";
-import VercelUrlTest from "./test";
 
 export default function Home() {
     return (
@@ -12,7 +11,6 @@ export default function Home() {
             <div className="flex p-4">
                 <MeetingForm></MeetingForm>
             </div>
-            <VercelUrlTest />
 
             <div className="flex flex-col p-4">
                 <MeetingContainer></MeetingContainer>
