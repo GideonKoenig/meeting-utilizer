@@ -11,6 +11,7 @@ import { ourFileRouter } from "./api/uploadthing/core";
 import { ThemeProvider } from "~/components/layouts/theme-providers";
 import SessionProvider from "~/components/layouts/next-auth-session-provider";
 import { Toaster } from "~/components/ui/sonner";
+import VercelUrlTest from "./test";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -44,6 +45,7 @@ export default async function RootLayout({
                         disableTransitionOnChange
                     >
                         <SessionProvider session={session}>
+                            <VercelUrlTest />
                             {children}
                         </SessionProvider>
                     </ThemeProvider>
