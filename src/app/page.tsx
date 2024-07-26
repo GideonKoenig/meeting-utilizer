@@ -11,6 +11,7 @@ export default function Home() {
             <div className="flex p-4">
                 <MeetingForm></MeetingForm>
             </div>
+            <div>{process.env.VERCEL_URL}</div>
 
             <div className="flex flex-col p-4">
                 <MeetingContainer></MeetingContainer>
