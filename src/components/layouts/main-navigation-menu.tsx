@@ -22,7 +22,10 @@ export default function NavMenu() {
                             <NavigationMenu.NavigationMenuLink
                                 className={NavigationMenu.navigationMenuTriggerStyle()}
                             >
-                                Home
+                                <img
+                                    src="images/REDSCHNELL_Logo_groß.png"
+                                    className="max-h-10"
+                                />
                             </NavigationMenu.NavigationMenuLink>
                         </Link>
                     </NavigationMenu.NavigationMenuItem>
